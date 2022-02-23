@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="sysSalesforceFlow" doc:id="32f19b6f-759d-4cac-89b1-9bb4655e1ff0" >
+		<logger level="INFO" doc:name="Enter sysSalesforceFlow" doc:id="6b8d48aa-fc60-42cb-9a8f-c47c8e584d41" message="Enter  sysSalesforceFlow"/>
+		<set-variable value="#[message.attributes.queryParams.id]" doc:name="Set Variable ID" doc:id="b384c7cf-f23a-4f4f-a339-1e683898aa5c" variableName="id" />
+		<http:request method="GET" doc:name="call sysSalesforce" doc:id="e462451b-2037-41b1-b717-321c8d2d9777" path="/api/quotes" config-ref="HTTP_Request_configuration-1">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.id
+}]]]></http:query-params>
+		</http:request>
+		<ee:transform doc:name="Response Recorded" doc:id="c1826fd3-7f00-4d8b-b0c8-03cd100e7ded" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="call sysInsuranceProviderFlow" doc:id="2343e908-891f-4747-accf-41c5b5155835" name="sysInsuranceProviderFlow"/>
+		<ee:transform doc:name="Response Recorded" doc:id="2fec3484-5169-4d6a-84b7-61a189491f30" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="call salesforceToUpdateData" doc:id="6bf8ad9c-d518-4aab-9431-beffd37a4340" path="${salesforce.path}" config-ref="HTTP_Request_configuration-1"/>
+		<logger level="INFO" doc:name="Exit sysSalesforceFlow" doc:id="e229960b-4c8f-4c00-a329-8a269b7cbcc0" message="Quote added successfully"/>
+	</sub-flow>
+	<sub-flow name="sysPostgreFlow" doc:id="57f435f4-8275-42ac-8f2f-9ab0c63bfc98" >
+		<logger level="INFO" doc:name="Enter sysPostgreFlow" doc:id="5f65ab6f-042b-4c58-a408-4cc64a3514c9" message="Enter sysPostgreFlow"/>
+		<set-variable value="#[message.attributes.queryParams.id]" doc:name="Set Variable ID" doc:id="dd062230-5d58-4369-adeb-0376e57ae720" variableName="id" />
+		<http:request method="GET" doc:name="call sysPostgresinputData" doc:id="5931fc68-fbc1-4fcb-a367-4431b6da4cd2" path="${postgres.path}" config-ref="HTTP_Request_configuration">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.id
+}]]]></http:query-params>
+		</http:request>
+		<ee:transform doc:name="Response recorded" doc:id="2386d5d7-05a9-463b-8689-17b0aebdff35" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="call sysInsuranceProviderFlow" doc:id="eb12f716-279f-42cd-a4e9-ccf1de96eb18" name="sysInsuranceProviderFlow"/>
+		<ee:transform doc:name="Response recorded" doc:id="088b9a8a-7ffa-406a-bb76-68e72624c747" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "success"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="call PostgrestoupdateQuote" doc:id="5ca89de1-2fae-434b-b5b6-49c0219d7602" path="${postgres.path}" config-ref="HTTP_Request_configuration">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.id
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Exit sysPostgreFlow" doc:id="7b5a5069-4601-452f-990b-2af241c43a6e" message="Quote added successfully"/>
+	</sub-flow>
+	<flow name="sysInsuranceProviderFlow" doc:id="379ef9e7-682f-42a8-a2c9-36a0363f3d6c" >
+		<try doc:name="Try" doc:id="989b9144-d546-4511-84c9-2531d62b4383" >
+			<http:request method="GET" doc:name="mysql DB" doc:id="cd0a50e6-05f2-45df-9879-bcd8f66fd0d9" path="/api/quotes" config-ref="HTTP_Request_configuration-2">
+				<http:query-params ><![CDATA[#[output application/java
+---
+{
+	id : vars.id
+}]]]></http:query-params>
+			</http:request>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="2d816f91-c6fe-44cf-aca7-7e0b0965640c" type="ANY">
+					<ee:transform doc:name="error description" doc:id="4476007a-37fd-4243-8356-f3b899397ccd" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": error.description
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
+	</flow>
+	<flow name="getInsuranceInfoFlow" doc:id="5d4ebe6d-0663-416a-a35a-9d10a4f13b70" >
+		<choice doc:name="routes req according to the size of ID" doc:id="a95bc97b-f948-41dd-af5c-62b769b84065" >
+			<when expression="#[sizeOf(attributes.queryParams.id) ==1 and attributes.queryParams.id &lt; 10]">
+				<http:request method="GET" doc:name="sysPostgresData" doc:id="b5cb6d37-246f-47b1-975a-75d022e80262" path="/api/quotes" config-ref="HTTP_Request_configuration">
+					<http:query-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.queryParams.id
+}]]]></http:query-params>
+				</http:request>
+			</when>
+			<when expression="#[sizeOf(attributes.queryParams.id) ==2 and attributes.queryParams.id &lt; 17]">
+				<http:request method="GET" doc:name="sysSalesforceData" doc:id="cb64e253-03a9-41fc-bdca-ff7841312c2d" path="${salesforce.path}" config-ref="HTTP_Request_configuration-1">
+					<http:query-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.queryParams.id
+}]]]></http:query-params>
+				</http:request>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="invalid ID" doc:id="20fbb2d2-de40-4c0c-8a71-1aa1eab03a35" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "Enter Valid ID"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="postquotesSysFlow" doc:id="0e831e30-05d1-4f37-9691-5836d6d11fa8" >
+		<choice doc:name="routes req according to the size of ID" doc:id="2c2387ff-feff-4c88-a3f5-b4b163daf74f" >
+			<when expression="#[sizeOf(attributes.queryParams.id) ==1 and attributes.queryParams.id &lt; 10]">
+				<flow-ref doc:name="call PostgresFlow" doc:id="4624090f-da5a-498c-bb01-bef400315010" name="sysPostgreFlow"/>
+			</when>
+			<when expression="#[sizeOf(attributes.queryParams.id) ==2 and attributes.queryParams.id &lt; 17]">
+				<flow-ref doc:name="call SalesforceFlow" doc:id="1e03ee89-3048-4b04-8c8e-59378b28b97b" name="sysSalesforceFlow"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Invalid ID" doc:id="441a18da-0561-4bb4-aa9e-5e4185d67d74" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	message: "Enter Valid ID"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

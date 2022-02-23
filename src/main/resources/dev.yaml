@@ -1,0 +1,27 @@
+mysqldb:
+ host: 'localhost'
+ port: "8081"
+ 
+
+postgres:
+  host: "postgres.us-e2.cloudhub.io"
+  port: "80"
+  path: "/api/quotes"
+  
+salesforce:
+  host: "localhost"
+  port: "8086"
+  path: "/api/quotes"
+  
+http:
+  host: "localhost"
+  port: "8084"
+  
+variable : "hi,how are you?"
+
+
+api:
+  id: "![KYfMfUrD6p0Yz86/YCcaLw==]"
+  
+secure:
+  key:  "mulesoft"

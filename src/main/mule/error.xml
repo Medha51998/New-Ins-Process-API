@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<error-handler name="globalError_Handler" doc:id="bf9c8397-92f0-4331-ab3a-e92a751694de" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="11a7e29c-9faa-4f44-bd3f-2ba92e084a75" >
+			<choice doc:name="routes request acc to Error namespace" doc:id="a9bd38cf-12cc-4405-b733-3c69ecd2b118" >
+				<when expression="#[error.errorType.namespace=='HTTP']">
+					<choice doc:name="routes req  for HTTP namespace" doc:id="847aa348-b325-45e8-9057-c36b88322f6d" >
+						<when expression="#[error.errorType.identifier=='BAD_REQUEST']">
+							<set-variable value="400" doc:name="HTTP: BAD_REQUEST" doc:id="574eb5a0-2652-49eb-a20a-791b37ad1eab" variableName="httpStatus"/>
+						</when>
+						<when expression="#[error.errorType.identifier=='INTERNAL_SERVER_ERROR']">
+							<set-variable value="500" doc:name="HTTP: INTERNAL_SERVER_ERROR" doc:id="9b61eed3-8d28-477f-96a2-c137c3601b1b" variableName="httpStatus"/>
+						</when>
+						<when expression="#[error.errorType.identifier=='CONNECTIVITY']">
+							<set-variable value="400" doc:name="HTTP:CONNECTIVITY" doc:id="61864ad8-782e-48e5-82f4-7fd3b2497bd7" variableName="httpStatus"/>
+						</when>
+						<otherwise >
+							<set-variable value="500" doc:name="httpStatus" doc:id="118c1fc2-7903-40a8-b433-ff55c7feda6f" variableName="httpStatus"/>
+						</otherwise>
+					</choice>
+					<ee:transform doc:name="error description" doc:id="f4a3d35a-5d8b-4708-bfea-d604b91b9cf1">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : error.description
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				</when>
+				<otherwise >
+					<ee:transform doc:name="error description" doc:id="2bd0d786-fef9-4451-94c6-ae00c53815f4" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : error.description
+}
+]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<set-variable value="500" doc:name="httpStatus" doc:id="7e279dfd-5b0d-470b-a137-5af038d9de09" variableName="httpStatus"/>
+				</otherwise>
+			</choice>
+		</on-error-propagate>
+	</error-handler>
+</mule>

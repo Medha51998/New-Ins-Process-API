@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<http:listener-config name="HTTP_Listener_config-1" doc:name="HTTP Listener config" doc:id="53c9c0c0-31e4-41b9-8063-30a5e6a3817c" >
+		<http:listener-connection host="${http.host}" port="${http.port}" />
+	</http:listener-config>
+	<apikit:config outboundHeadersMapName="outboundHeadersMapName" httpStatusVarName="httpStatus" doc:name="Router" doc:id="05254a80-b4f7-409a-ac01-93cb45780b3a" name="insurance-prc-api-config" api="insurance-prc-api.raml" />
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="435ac91a-bc16-4054-8348-18acbe0124c2" >
+		<http:request-connection host="${postgres.host}" port="${postgres.port}" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration-1" doc:name="HTTP Request configuration" doc:id="4e38728a-6bd8-48c2-9a72-656ed9a7d886" >
+		<http:request-connection host="${salesforce.host}" port="${salesforce.port}" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration-2" doc:name="HTTP Request configuration" doc:id="094cc5d1-5f9d-4844-ae5c-39216a112a3e" >
+		<http:request-connection host="${mysqldb.host}" port="${mysqldb.port}" />
+	</http:request-config>
+	<configuration doc:name="Configuration" doc:id="2a32a31e-1e26-4e12-bf72-527bf574e16d" defaultErrorHandler-ref="globalError_Handler" />
+	<api-gateway:autodiscovery apiId="${secure::api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="9d48f0f8-4886-493a-9ac2-8cfd783eed7c" flowRef="insurance-prc-api-main" />
+	<configuration-properties doc:name="Configuration properties" doc:id="a8afe027-9013-4fcd-b7c5-ac5571386f65" file="${env}.yaml"/>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="b881fe8e-1af4-49a1-9410-d21f3b3a16f1" file="dev.yaml" key="${secure.key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="e914d286-d272-49f8-8fa0-7d1d772fa90b" file="${env}.yaml" />
+	<global-property doc:name="Global Property" doc:id="dcbb57ce-dbe8-4801-9cf0-9591ee881ae6" name="env" value="dev" />
+</mule>
